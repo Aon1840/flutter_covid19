@@ -16,7 +16,10 @@ class IconContent extends StatelessWidget {
       children: [
         Text(
           todayAmount,
-          style: kLabelTextStyle.copyWith(fontSize: 50.0),
+          style: kLabelTextStyle.copyWith(
+            fontSize: 50.0,
+//            foreground: Paint()..shader = linearGradient,
+          ),
         ),
         Text(
           totalAmount,

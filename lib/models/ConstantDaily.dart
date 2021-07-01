@@ -9,4 +9,11 @@ class ConstantDaily {
     var covidResponse = await network.getData();
     return covidResponse;
   }
+
+  Future<dynamic> callGetCovidTimeline() async {
+    var url = "$baseCovidStatUrl/getTimeline.json";
+    Network network = Network(url);
+    var covidTimeline = await network.getData();
+    return covidTimeline;
+  }
 }
