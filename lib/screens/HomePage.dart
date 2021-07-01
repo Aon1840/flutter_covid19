@@ -53,15 +53,25 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("BearmanCovid19"),
+        title: Text(
+          "BearmanCovid19",
+          style: TextStyle(foreground: Paint()..shader = linearGradient),
+        ),
       ),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(
+          "ข้อมูล ณ วันที่ $date",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontFamily: "Khanit"),
+        ),
         Expanded(
           child: ReusableCard(
             cardChild: IconContent(
-                todayAmount: newConfirm,
-                totalAmount: confirmTotal,
-                sectionName: "New Recover"),
+              todayAmount: newConfirm,
+              totalAmount: confirmTotal,
+              sectionName: "ยอดผู้ติดเชื้อ",
+              colorSection: Paint()..shader = newConfirmGradient,
+            ),
           ),
         ),
         Expanded(
@@ -70,37 +80,49 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: ReusableCard(
                   cardChild: IconContent(
-                      todayAmount: newRecover,
-                      totalAmount: recoverTotal,
-                      sectionName: "New Recover"),
+                    todayAmount: newRecover,
+                    totalAmount: recoverTotal,
+                    sectionName: "หายแล้ว",
+                    colorSection: Paint()..shader = newRecoveredGradient,
+                  ),
                 ),
               ),
               Expanded(
                 child: ReusableCard(
                   cardChild: IconContent(
-                      todayAmount: newDeath,
-                      totalAmount: deathTotal,
-                      sectionName: "New Recover"),
+                    todayAmount: newDeath,
+                    totalAmount: deathTotal,
+                    sectionName: "ยอดผู้เสียชีวิต",
+                    colorSection: Paint()..shader = newDeathGradient,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         Expanded(
-            child: ReusableCard(
-                cardChild: Stack(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      right: 18.0, left: 12.0, top: 24, bottom: 12),
-                  child: LineChart(mainData()),
+          child: ReusableCard(
+            cardChild: Stack(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.all(15.0),
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    "กราฟแสดงยอดผู้ติดเชื้อย้อนหลัง",
+                    style: TextStyle(fontFamily: "Khanit"),
+                  ),
                 ),
-              ),
-            )
-          ],
-        )))
+                Container(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.only(right: 18.0, left: 12.0, top: 50),
+                    child: LineChart(mainData()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
       ]),
     );
   }
