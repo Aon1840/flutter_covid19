@@ -1,18 +1,50 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_covid19/components/IconContent.dart';
+import 'package:flutter_covid19/components/ReusableCard.dart';
+import 'package:flutter_covid19/models/ConstantDaily.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class LineChartSample2 extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _LineChartSample2State createState() => _LineChartSample2State();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _LineChartSample2State extends State<LineChartSample2> {
+class _HomePageState extends State<HomePage> {
   List<Color> gradientColors = [
     const Color(0xff23b6e6),
     const Color(0xff02d39a),
   ];
 
   bool showAvg = false;
+  String newConfirm = "???";
+  String confirmTotal = "???";
+  String newRecover = "???";
+  String recoverTotal = "???";
+  String newDeath = "???";
+  String deathTotal = "???";
+  String date = "???";
+
+  @override
+  void initState() {
+    super.initState();
+    getCovidConstant();
+  }
+
+  void getCovidConstant() async {
+    var covidConstant = await ConstantDaily().callGetCovidConstantDaily();
+    setState(() {
+      print(covidConstant);
+      newConfirm = covidConstant["NewConfirmed"].toString();
+      confirmTotal = covidConstant["Confirmed"].toString();
+      newRecover = covidConstant["NewRecovered"].toString();
+      recoverTotal = covidConstant["Recovered"].toString();
+      newDeath = covidConstant["NewDeaths"].toString();
+      deathTotal = covidConstant["Deaths"].toString();
+      date = covidConstant["UpdateDate"].toString();
+      print(newConfirm);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,47 +52,90 @@ class _LineChartSample2State extends State<LineChartSample2> {
       appBar: AppBar(
         title: Text("BearmanCovid19"),
       ),
-      body: Stack(
-        children: <Widget>[
-          AspectRatio(
-            aspectRatio: 1.70,
-            child: Container(
-              decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(18),
-                  ),
-                  color: Color(0xff232d37)),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    right: 18.0, left: 12.0, top: 24, bottom: 12),
-                child: LineChart(
-                  showAvg ? avgData() : mainData(),
-                ),
-              ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ReusableCard(
+              cardChild: IconContent(
+                  todayAmount: newConfirm,
+                  totalAmount: confirmTotal,
+                  sectionName: "New Recover"),
             ),
           ),
-          SizedBox(
-            width: 60,
-            height: 34,
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  showAvg = !showAvg;
-                });
-              },
-              child: Text(
-                'avg',
-                style: TextStyle(
-                    fontSize: 12,
-                    color:
-                        showAvg ? Colors.white.withOpacity(0.5) : Colors.white),
-              ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: ReusableCard(
+                    cardChild: IconContent(
+                        todayAmount: newRecover,
+                        totalAmount: recoverTotal,
+                        sectionName: "New Recover"),
+                  ),
+                ),
+                Expanded(
+                  child: ReusableCard(
+                    cardChild: IconContent(
+                        todayAmount: newDeath,
+                        totalAmount: deathTotal,
+                        sectionName: "New Recover"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ReusableCard(
+              cardChild: IconContent(
+                  todayAmount: newDeath,
+                  totalAmount: deathTotal,
+                  sectionName: "New Recover"),
             ),
           ),
         ],
       ),
     );
   }
+
+//  body: Stack(
+//  children: <Widget>[
+//  AspectRatio(
+//  aspectRatio: 1.70,
+//  child: Container(
+//  decoration: const BoxDecoration(
+//  borderRadius: BorderRadius.all(
+//  Radius.circular(18),
+//  ),
+//  color: Color(0xff232d37)),
+//  child: Padding(
+//  padding: const EdgeInsets.only(
+//  right: 18.0, left: 12.0, top: 24, bottom: 12),
+//  child: LineChart(
+//  showAvg ? avgData() : mainData(),
+//  ),
+//  ),
+//  ),
+//  ),
+//  SizedBox(
+//  width: 60,
+//  height: 34,
+//  child: TextButton(
+//  onPressed: () {
+//  setState(() {
+//  showAvg = !showAvg;
+//  });
+//  },
+//  child: Text(
+//  'avg',
+//  style: TextStyle(
+//  fontSize: 12,
+//  color:
+//  showAvg ? Colors.white.withOpacity(0.5) : Colors.white),
+//  ),
+//  ),
+//  ),
+//  ],
 
   LineChartData mainData() {
     return LineChartData(
