@@ -7,6 +7,11 @@ import 'package:flutter_covid19/models/ConstantDaily.dart';
 import '../Constants.dart';
 
 class HomePage extends StatefulWidget {
+  final covidTimeline;
+  final covidConstant;
+
+  HomePage({this.covidConstant, this.covidTimeline});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -25,12 +30,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    getCovidConstant();
-    getCovidTimeline();
+    updateUI(widget.covidConstant);
+    updateTimelineUI(widget.covidTimeline);
   }
 
-  void getCovidConstant() async {
-    var covidConstant = await ConstantDaily().callGetCovidConstantDaily();
+  void updateUI(dynamic covidConstant) {
+    print(covidConstant);
     setState(() {
       newConfirm = covidConstant["NewConfirmed"].toString();
       confirmTotal = covidConstant["Confirmed"].toString();
@@ -39,6 +44,12 @@ class _HomePageState extends State<HomePage> {
       newDeath = covidConstant["NewDeaths"].toString();
       deathTotal = covidConstant["Deaths"].toString();
       date = covidConstant["UpdateDate"].toString();
+    });
+  }
+
+  void updateTimelineUI(dynamic covidTimeline) {
+    setState(() {
+      timeline = covidTimeline["Data"].reversed.toList().sublist(0, 10);
     });
   }
 
