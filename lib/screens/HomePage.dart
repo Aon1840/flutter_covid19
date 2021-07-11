@@ -3,21 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_covid19/components/IconContent.dart';
 import 'package:flutter_covid19/components/ReusableCard.dart';
 import 'package:flutter_covid19/models/ConstantDaily.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../Constants.dart';
 
 class HomePage extends StatefulWidget {
-  final covidTimeline;
-  final covidConstant;
-
-  HomePage({this.covidConstant, this.covidTimeline});
+//  final covidTimeline;
+//  final covidConstant;
+//
+//  HomePage({this.covidConstant, this.covidTimeline});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  bool showAvg = false;
+  bool isLoading = false;
   String newConfirm = "???";
   String confirmTotal = "???";
   String newRecover = "???";
@@ -27,11 +28,28 @@ class _HomePageState extends State<HomePage> {
   String date = "???";
   List timeline;
 
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+
   @override
   void initState() {
     super.initState();
-    updateUI(widget.covidConstant);
-    updateTimelineUI(widget.covidTimeline);
+    callService();
+  }
+
+  void callService() async {
+    var covidConstant = await ConstantDaily().callGetCovidConstantDaily();
+    var covidTimeline = await ConstantDaily().callGetCovidTimeline();
+    print(covidConstant);
+    print(covidTimeline);
+    updateUI(covidConstant);
+    updateTimelineUI(covidTimeline);
+    isLoading = true;
+  }
+
+  void _onRefresh() async {
+    callService();
+    _refreshController.refreshCompleted();
   }
 
   void updateUI(dynamic covidConstant) {
@@ -69,72 +87,79 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(foreground: Paint()..shader = linearGradient),
         ),
       ),
-      body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(
-          "ข้อมูล ณ วันที่ $date",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontFamily: "Khanit"),
-        ),
-        Expanded(
-          child: ReusableCard(
-            cardChild: IconContent(
-              todayAmount: newConfirm,
-              totalAmount: confirmTotal,
-              sectionName: "ยอดผู้ติดเชื้อ",
-              colorSection: Paint()..shader = newConfirmGradient,
+      body: SmartRefresher(
+        enablePullDown: true,
+        header: WaterDropHeader(),
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(
+            "ข้อมูล ณ วันที่ $date",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontFamily: "Khanit"),
+          ),
+          Expanded(
+            child: ReusableCard(
+              cardChild: IconContent(
+                todayAmount: newConfirm,
+                totalAmount: confirmTotal,
+                sectionName: "ยอดผู้ติดเชื้อ",
+                colorSection: Paint()..shader = newConfirmGradient,
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: ReusableCard(
-                  cardChild: IconContent(
-                    todayAmount: newRecover,
-                    totalAmount: recoverTotal,
-                    sectionName: "หายแล้ว",
-                    colorSection: Paint()..shader = newRecoveredGradient,
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: ReusableCard(
+                    cardChild: IconContent(
+                      todayAmount: newRecover,
+                      totalAmount: recoverTotal,
+                      sectionName: "หายแล้ว",
+                      colorSection: Paint()..shader = newRecoveredGradient,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: ReusableCard(
-                  cardChild: IconContent(
-                    todayAmount: newDeath,
-                    totalAmount: deathTotal,
-                    sectionName: "ยอดผู้เสียชีวิต",
-                    colorSection: Paint()..shader = newDeathGradient,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ReusableCard(
-            cardChild: Stack(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.all(15.0),
-                  alignment: Alignment.topCenter,
-                  child: Text(
-                    "กราฟแสดงยอดผู้ติดเชื้อย้อนหลัง",
-                    style: TextStyle(fontFamily: "Khanit"),
-                  ),
-                ),
-                Container(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(right: 18.0, left: 12.0, top: 50),
-                    child: LineChart(mainData()),
+                Expanded(
+                  child: ReusableCard(
+                    cardChild: IconContent(
+                      todayAmount: newDeath,
+                      totalAmount: deathTotal,
+                      sectionName: "ยอดผู้เสียชีวิต",
+                      colorSection: Paint()..shader = newDeathGradient,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        )
-      ]),
+          Expanded(
+            child: ReusableCard(
+              cardChild: Stack(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.all(15.0),
+                    alignment: Alignment.topCenter,
+                    child: Text(
+                      "กราฟแสดงยอดผู้ติดเชื้อย้อนหลัง",
+                      style: TextStyle(fontFamily: "Khanit"),
+                    ),
+                  ),
+                  Container(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          right: 18.0, left: 12.0, top: 50),
+                      child: LineChart(isLoading ? mainData() : preloadChart()),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ]),
+      ),
     );
   }
 
@@ -223,6 +248,97 @@ class _HomePageState extends State<HomePage> {
             FlSpot(8, timeline[1]["NewConfirmed"].toDouble()),
             FlSpot(9, timeline[0]["NewConfirmed"].toDouble()),
           ],
+          isCurved: true,
+          colors: gradientColors,
+          barWidth: 5,
+          isStrokeCapRound: false,
+          dotData: FlDotData(
+            show: false,
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            colors:
+                gradientColors.map((color) => color.withOpacity(0.3)).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  LineChartData preloadChart() {
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        getDrawingHorizontalLine: (value) {
+          return FlLine(
+            color: const Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+        getDrawingVerticalLine: (value) {
+          return FlLine(
+            color: const Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        bottomTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 22,
+          getTextStyles: (value) => const TextStyle(
+              color: Color(0xff68737d),
+              fontWeight: FontWeight.bold,
+              fontSize: 10),
+          getTitles: (value) {
+            switch (value.toInt()) {
+              case 2:
+                return timeline[7]["Date"].toString().substring(0, 5);
+              case 4:
+                return timeline[5]["Date"].toString().substring(0, 5);
+              case 6:
+                return timeline[3]["Date"].toString().substring(0, 5);
+              case 8:
+                return timeline[1]["Date"].toString().substring(0, 5);
+            }
+            return '';
+          },
+          margin: 8,
+        ),
+        leftTitles: SideTitles(
+          showTitles: true,
+          getTextStyles: (value) => const TextStyle(
+            color: Color(0xff67727d),
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+          getTitles: (value) {
+            switch (value.toInt()) {
+              case 2000:
+                return '2k';
+              case 6000:
+                return '6k';
+              case 10000:
+                return '10k';
+            }
+            return '';
+          },
+          reservedSize: 28,
+          margin: 12,
+        ),
+      ),
+      borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: const Color(0xff37434d), width: 1)),
+      minX: 0,
+      maxX: 9,
+      minY: 0,
+      maxY: 10000,
+      lineBarsData: [
+        LineChartBarData(
+          spots: [],
           isCurved: true,
           colors: gradientColors,
           barWidth: 5,

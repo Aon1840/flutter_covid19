@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_covid19/screens/HomePage.dart';
 import 'package:flutter_covid19/screens/LoadingPage.dart';
 
 void main() {
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Color(0xFF0A0E21),
         scaffoldBackgroundColor: Color(0xFF0A0E21),
       ),
-      home: LoadingPage(),
+      home: HomePage(),
     );
   }
 }
