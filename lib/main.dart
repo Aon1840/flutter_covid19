@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_covid19/screens/HomePage.dart';
-import 'package:flutter_covid19/screens/LoadingPage.dart';
 
 void main() {
   runApp(MyApp());
